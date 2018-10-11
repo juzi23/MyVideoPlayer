@@ -47,66 +47,70 @@ void VideoDecoder::startDecode() {
 
 void VideoDecoder::decode() {
     isOnDecoding = true;
+    while (true) {
+        if (isOnDecoding) {
+            LOGD("当前音频缓冲时长%d",(int)(synchronizer->audioQueue->currentDuration));
 
-    while (isOnDecoding) {
-        LOGD("当前音频缓冲时长%d",(int)(synchronizer->audioQueue->currentDuration));
+            // 每解码一帧，都进行判断，如果音频队列中的数据都大于最大刻度时，线程处于等待状态
+            // 还有一种情况，如果仅存在音频
+            bool firstCond = synchronizer->audioQueue->currentDuration >= synchronizer->maxDuration;
 
-        // 每解码一帧，都进行判断，如果音频队列中的数据都大于最大刻度时，线程处于等待状态
-        // 还有一种情况，如果仅存在音频
-        bool firstCond = synchronizer->audioQueue->currentDuration >= synchronizer->maxDuration;
+            if (firstCond){
+                // 声明解码锁
+                std::unique_lock<std::mutex> lckDecode(decodeMutex);
+                decodeCond.wait(lckDecode);
+            }
 
-        if (firstCond){
-            // 声明解码锁
-            std::unique_lock<std::mutex> lckDecode(decodeMutex);
-            decodeCond.wait(lckDecode);
-        }
+            //region 循环体
+            int ret = -1;
 
-        //region 循环体
-        int ret = -1;
+            // 分配空包
+            AVPacket * packet = av_packet_alloc();
 
-        // 分配空包
-        AVPacket * packet = av_packet_alloc();
+            ret = av_read_frame(formatContext,&(*packet));
 
-        ret = av_read_frame(formatContext,&(*packet));
+            if(ret != 0 || packet == nullptr){
+                LOGD("读取完毕");
+                av_packet_free(&packet);
+                av_free(packet);
+                packet = nullptr;
+                break;
+            }
+            ret = -1;
+            //endregion
 
-        if(ret != 0 || packet == nullptr){
-            LOGD("读取完毕");
-            av_packet_free(&packet);
-            av_free(packet);
-            packet = nullptr;
-            break;
-        }
-        ret = -1;
-        //endregion
+            if(packet->stream_index == audioIndex) {
+                // 解码音频包
+                decodeAudioAVPacket(packet);
 
-        if(packet->stream_index == audioIndex) {
-            // 解码音频包
-            decodeAudioAVPacket(packet);
+                av_packet_free(&packet);
+                av_free(packet);
+                packet = nullptr;
 
-            av_packet_free(&packet);
-            av_free(packet);
-            packet = nullptr;
+                continue;
+            }
+            else if(packet->stream_index == videoIndex){
+                // 将packet存储到视频缓冲队列中
+                VideoFrame * videoFrame = new VideoFrame();
+                videoFrame->videoPacket = packet;
+
+                // 记录当前帧时间戳 转化为毫秒 这是根据packet中的值粗略估计的
+                int64_t pts = 0 ;
+                pts = (packet->pts * 1000*videoTimebase.num) / videoTimebase.den;
+                videoFrame->position = pts;
+
+                // 将videoFrame放入VideoFrameQueue中
+                synchronizer->videoQueue->put(videoFrame);
+
+                continue;
+            }
 
             continue;
+            //endregion
+        }else{
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            std::this_thread::yield();
         }
-        else if(packet->stream_index == videoIndex){
-            // 将packet存储到视频缓冲队列中
-            VideoFrame * videoFrame = new VideoFrame();
-            videoFrame->videoPacket = packet;
-
-            // 记录当前帧时间戳 转化为毫秒 这是根据packet中的值粗略估计的
-            int64_t pts = 0 ;
-            pts = (packet->pts * 1000*videoTimebase.num) / videoTimebase.den;
-            videoFrame->position = pts;
-
-            // 将videoFrame放入VideoFrameQueue中
-            synchronizer->videoQueue->put(videoFrame);
-
-            continue;
-        }
-
-        continue;
-        //endregion
     }
 
     // TODO 解码完成
@@ -586,6 +590,14 @@ double VideoDecoder::synchronize(AVFrame *srcFrame, double pts)
     video_clock += frame_delay;
 
     return pts;
+}
+
+void VideoDecoder::pause() {
+    isOnDecoding = false;
+}
+
+void VideoDecoder::resume() {
+    isOnDecoding = true;
 }
 
 

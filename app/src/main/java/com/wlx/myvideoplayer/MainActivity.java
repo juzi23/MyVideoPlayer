@@ -10,13 +10,21 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
+import com.lidroid.xutils.ViewUtils;
+import com.lidroid.xutils.view.annotation.ViewInject;
 import com.wlx.videoplayerlib.WlxVideoPlayer;
 import com.wlx.videoplayerlib.listener.OnPreparedListener;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener {
     private WlxVideoPlayer videoPlayer;
+    @ViewInject(R.id.sv_surface)
     private SurfaceView sv_surface;
+    @ViewInject(R.id.btn_start)
     private Button btn_start;
+    @ViewInject(R.id.btn_pause)
+    private Button btn_pause;
+    @ViewInject(R.id.btn_resume)
+    private Button btn_resume;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,22 +39,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initListener() {
-        this.btn_start.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-//                videoPlayer.setSource("http://mpge.5nd.com/2015/2015-11-26/69708/1.mp3");
-                videoPlayer.setSource(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath() + "/aemsjd.mkv");
-//                videoPlayer.setSource(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath() + "/HEVC.mp4");
-                videoPlayer.prepare();
-
-            }
-        });
+        this.btn_start.setOnClickListener(this);
+        this.btn_pause.setOnClickListener(this);
+        this.btn_resume.setOnClickListener(this);
     }
 
     private void initView() {
         setContentView(R.layout.activity_main);
-        btn_start = findViewById(R.id.btn_start);
-        sv_surface = findViewById(R.id.sv_surface);
+        ViewUtils.inject(this);
     }
 
     private void initPlayer() {
@@ -58,5 +58,23 @@ public class MainActivity extends AppCompatActivity {
                 videoPlayer.initVideoOutput(sv_surface.getHolder().getSurface());
             }
         });
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch(v.getId()) {
+            case R.id.btn_start:
+                videoPlayer.setSource(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS).getAbsolutePath() + "/aemsjd.mkv");
+                videoPlayer.prepare();
+                break;
+            case R.id.btn_pause:
+                videoPlayer.pause();
+                break;
+            case R.id.btn_resume:
+                videoPlayer.resume();
+                break;
+            default:
+                break;
+        }
     }
 }

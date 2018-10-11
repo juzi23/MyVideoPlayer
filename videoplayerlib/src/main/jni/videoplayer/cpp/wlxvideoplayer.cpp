@@ -111,8 +111,7 @@ extern "C"
 JNIEXPORT void JNICALL
 Java_com_wlx_videoplayerlib_WlxVideoPlayer_n_1pause(JNIEnv *env, jobject instance) {
 
-    // TODO
-
+    controller->pause();
 }
 
 //继续播放
@@ -121,7 +120,7 @@ JNIEXPORT void JNICALL
 Java_com_wlx_videoplayerlib_WlxVideoPlayer_n_1resume(JNIEnv *env, jobject instance) {
 
     // TODO
-
+    controller->resume();
 }
 
 //停止播放
@@ -129,7 +128,7 @@ extern "C"
 JNIEXPORT void JNICALL
 Java_com_wlx_videoplayerlib_WlxVideoPlayer_n_1stop(JNIEnv *env, jobject instance) {
 
-    // TODO
+    controller->stop();
 
 }
 

@@ -14,12 +14,15 @@ class AudioOutput;
 class VideoOutput;
 
 #include "OnCallJava.h"
+#include "WlxPlayerState.h"
 
 
 class VideoPlayerController {
 private:
     AudioOutput * audioOutput = nullptr;
     VideoOutput * videoOutput = nullptr;
+    // 当前播放状态，我放在栈区
+    WlxPlayerState currentPlayState;
 public:
     AVSynchronizer * synchronizer = nullptr;
     OnCallJava * onCallJava = nullptr;
@@ -35,6 +38,13 @@ public:
     void play();
 
     void initVideoOutput(ANativeWindow *pWindow);
+
+    // 停止播放
+    void stop();
+
+    void resume();
+
+    void pause();
 };
 
 

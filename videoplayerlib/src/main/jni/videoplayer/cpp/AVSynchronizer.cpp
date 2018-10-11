@@ -97,4 +97,13 @@ void AVSynchronizer::run() {
     }
 }
 
+void AVSynchronizer::pause() {
+    // ①停下videoDecoder中的解码线程
+    videoDecoder->pause();
+}
+
+void AVSynchronizer::resume() {
+    videoDecoder->resume();
+}
+
 

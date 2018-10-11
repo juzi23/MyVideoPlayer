@@ -197,17 +197,30 @@ void VideoOutput::play() {
     }
 
     // TODO 加入播放控制逻辑
-    while(1){
-        VideoFrame * frame = controller->synchronizer->getCurrentFrame();
-        renderFrame(frame);
-        // 这里解释下，我在这一步直接释放正在渲染帧时，会导致出现异常，
-        // 原因未知(我估计是内存被opengl占用着)，所以我改成释放上一帧
-        // 即已经确定渲染完成的帧，这就没问题了
-        if(lastFrame != nullptr){
-            delete(lastFrame);
-            lastFrame = nullptr;
+    while(true){
+        if (isPlaying) {
+            VideoFrame * frame = controller->synchronizer->getCurrentFrame();
+            renderFrame(frame);
+            // 这里解释下，我在这一步直接释放正在渲染帧时，会导致出现异常，
+            // 原因未知(我估计是内存被opengl占用着)，所以我改成释放上一帧
+            // 即已经确定渲染完成的帧，这就没问题了
+            if(lastFrame != nullptr){
+                delete(lastFrame);
+                lastFrame = nullptr;
+            }
+            lastFrame = frame;
+        }else{
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            std::this_thread::yield();
         }
-        lastFrame = frame;
 
     }
+}
+
+void VideoOutput::pause() {
+    isPlaying = false;
+}
+
+void VideoOutput::resume() {
+    isPlaying = true;
 }

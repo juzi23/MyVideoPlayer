@@ -46,6 +46,11 @@ public:
 
     // 音频重采样上下文
     SwrContext *audioSwrContext = nullptr;
+
+    void pause();
+
+    void resume();
+
 public:
     // 音频解码器参数
     AVCodecParameters * audioCodecpar = nullptr;

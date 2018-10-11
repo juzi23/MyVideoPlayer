@@ -153,3 +153,15 @@ SLuint32 AudioOutput::getCurrentSampleRateForOpensles(int sample_rate) {
 void AudioOutput::play() {
     pcmBufferCallBack(pcmBufferQueue,this);
 }
+
+void AudioOutput::pause() {
+    if(pcmPlayerPlay!= nullptr){
+        (*pcmPlayerPlay)->SetPlayState(pcmPlayerPlay,SL_PLAYSTATE_PAUSED);
+    }
+}
+
+void AudioOutput::resume() {
+    if(pcmPlayerPlay!= nullptr){
+        (*pcmPlayerPlay)->SetPlayState(pcmPlayerPlay,SL_PLAYSTATE_PLAYING);
+    }
+}

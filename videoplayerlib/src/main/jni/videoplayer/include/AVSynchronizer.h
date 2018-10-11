@@ -93,6 +93,10 @@ public:
     int64_t lastAudioFrameTimeStamp = 0;
     // 记录下拿走时的时间
     long long lastGetSystemTime;
+
+    void pause();
+
+    void resume();
 };
 
 

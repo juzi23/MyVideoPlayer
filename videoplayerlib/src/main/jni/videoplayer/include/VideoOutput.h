@@ -34,6 +34,9 @@ public:
     void renderFrame(VideoFrame * videoFrame);
 
 
+    void pause();
+
+    void resume();
 
 private:
     // GLSL程序:顶点着色器
@@ -71,6 +74,9 @@ private:
     EGLContext mContext;
     int mWidth;
     int mHeight;
+
+    bool isPlaying = true;
+
     // 初始化EGL环境
     void initEGL();
 

@@ -25,6 +25,10 @@ public:
 
     void play();
 
+    void pause();
+
+    void resume();
+
 private:
     // 引擎接口
     SLObjectItf engineObject = NULL;
