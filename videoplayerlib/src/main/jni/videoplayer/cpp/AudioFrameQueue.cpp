@@ -11,7 +11,10 @@ AudioFrameQueue::AudioFrameQueue(AVSynchronizer * synchronizer) {
 }
 
 AudioFrameQueue::~AudioFrameQueue() {
-    delete(queue);
+    if(queue != nullptr){
+        delete(queue);
+        queue = nullptr;
+    }
 }
 
 

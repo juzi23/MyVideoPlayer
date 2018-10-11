@@ -51,6 +51,8 @@ public:
 
     void resume();
 
+    void stop();
+
 public:
     // 音频解码器参数
     AVCodecParameters * audioCodecpar = nullptr;
@@ -101,6 +103,8 @@ public:
     std::condition_variable decodeCond;
     // 是否进行解码工作的标志位
     bool isOnDecoding = false;
+    // 程序是否结束
+    bool isExit = false;
 
     // 发送进行解码的消息
     void requestDecode();
@@ -140,6 +144,7 @@ private:
     double synchronize(AVFrame *srcFrame, double pts);
 
     double video_clock = 0;
+
 };
 
 

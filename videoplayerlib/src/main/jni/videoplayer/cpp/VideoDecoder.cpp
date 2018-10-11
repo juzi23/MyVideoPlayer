@@ -6,10 +6,17 @@ VideoDecoder::VideoDecoder(AVSynchronizer & sync, OnCallJava *& onCallJava) {
 }
 
 VideoDecoder::~VideoDecoder() {
+    isExit = true;
+    {
+        std::unique_lock<std::mutex> lckDecode(decodeMutex);
+        decodeCond.notify_all();
+    }
+
     //TODO 修改控制子线程工作的标志位
 
     //等待子线程结束
     prepareThread->join();
+//    decodeThread->join();
     decodeThread->join();
 
     //回收内存
@@ -22,6 +29,18 @@ VideoDecoder::~VideoDecoder() {
         free(url);
         url = nullptr;
     }
+
+    int count = 0;
+
+    if (this->formatContext!= nullptr) {
+        // 文件一个开发对应一个关闭，一定要加上，不然重复打开会报错
+        avformat_close_input(&formatContext);
+        avformat_free_context(this->formatContext);
+        av_free(formatContext);
+        formatContext = nullptr;
+    }
+
+    isPrepareThreadExit = true;
 }
 
 void VideoDecoder::setSource(const char *string) {
@@ -47,7 +66,7 @@ void VideoDecoder::startDecode() {
 
 void VideoDecoder::decode() {
     isOnDecoding = true;
-    while (true) {
+    while (!isExit) {
         if (isOnDecoding) {
             LOGD("当前音频缓冲时长%d",(int)(synchronizer->audioQueue->currentDuration));
 
@@ -61,7 +80,6 @@ void VideoDecoder::decode() {
                 decodeCond.wait(lckDecode);
             }
 
-            //region 循环体
             int ret = -1;
 
             // 分配空包
@@ -77,7 +95,6 @@ void VideoDecoder::decode() {
                 break;
             }
             ret = -1;
-            //endregion
 
             if(packet->stream_index == audioIndex) {
                 // 解码音频包
@@ -352,7 +369,7 @@ bool VideoDecoder::decodeVideoAVPacket(VideoFrame *& videoFrame) {
     AVPacket * srcPacket = videoFrame->videoPacket;
     int ret = -1;
     // 将待解码的包发送到解码器上下文中
-    while(1){
+    while(!isExit){
         ret = avcodec_send_packet(this->videoCodecContext, srcPacket);
         if (ret != 0) {
             return false;
@@ -491,7 +508,7 @@ void VideoDecoder::decodeAudioAVPacket(AVPacket *& packet) {
     ret = -1;
 
     // region 循环取packet中的frame,直到取干净
-    while(1){
+    while(!isExit){
 
         // 解码，并将解码后数据保存到frame中
         std::shared_ptr<AVFrame> frame(av_frame_alloc(),[](AVFrame * frame){
@@ -598,6 +615,10 @@ void VideoDecoder::pause() {
 
 void VideoDecoder::resume() {
     isOnDecoding = true;
+}
+
+void VideoDecoder::stop() {
+
 }
 
 

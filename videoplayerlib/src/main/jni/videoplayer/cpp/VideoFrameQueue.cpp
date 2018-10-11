@@ -5,7 +5,10 @@ VideoFrameQueue::VideoFrameQueue() {
 }
 
 VideoFrameQueue::~VideoFrameQueue() {
-    delete(queue);
+    if(queue != nullptr){
+        delete(queue);
+        queue = nullptr;
+    }
 }
 
 void VideoFrameQueue::put(VideoFrame *& frame) {

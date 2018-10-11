@@ -14,10 +14,7 @@ VideoPlayerController::VideoPlayerController(OnCallJava *pJava) {
 }
 
 VideoPlayerController::~VideoPlayerController() {
-    if(synchronizer!= nullptr){
-        delete(synchronizer);
-        synchronizer = nullptr;
-    }
+    stop();
 
     this->onCallJava = nullptr;
 }
@@ -61,9 +58,20 @@ void VideoPlayerController::stop() {
     // 1.ffmpeg拆包线程；2.音频播放线程；3.视频播放解码线程
 
     // 1.停下3个线程；
-
-
+    pause();
     // 2.回收资源
+    if(videoOutput!= nullptr){
+        delete(videoOutput);
+        videoOutput = nullptr;
+    }
+    if(audioOutput!= nullptr){
+        delete(audioOutput);
+        audioOutput = nullptr;
+    }
+    if(synchronizer!= nullptr){
+        delete(synchronizer);
+        synchronizer = nullptr;
+    }
 
     currentPlayState.currentPlayState = EnumCurrentPlayState::EXIT;
 }

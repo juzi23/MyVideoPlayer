@@ -128,8 +128,14 @@ extern "C"
 JNIEXPORT void JNICALL
 Java_com_wlx_videoplayerlib_WlxVideoPlayer_n_1stop(JNIEnv *env, jobject instance) {
 
-    controller->stop();
-
+    if(controller != nullptr){
+        delete(controller);
+        controller = nullptr;
+    }
+    if(onCallJava != nullptr){
+        delete(onCallJava);
+        onCallJava = nullptr;
+    }
 }
 
 //切换到指定位置播放

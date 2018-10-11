@@ -18,6 +18,7 @@ AVSynchronizer::AVSynchronizer(VideoPlayerController & controller, OnCallJava *&
 }
 
 AVSynchronizer::~AVSynchronizer() {
+    stop();
 
     if(videoQueue != nullptr){
         delete(videoQueue);
@@ -104,6 +105,9 @@ void AVSynchronizer::pause() {
 
 void AVSynchronizer::resume() {
     videoDecoder->resume();
+}
+
+void AVSynchronizer::stop() {
 }
 
 

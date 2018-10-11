@@ -24,5 +24,10 @@
         android:id="@+id/btn_resume"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
+    <Button
+        android:text="结束"
+        android:id="@+id/btn_stop"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
 
 </LinearLayout>

@@ -25,6 +25,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Button btn_pause;
     @ViewInject(R.id.btn_resume)
     private Button btn_resume;
+    @ViewInject(R.id.btn_stop)
+    private Button btn_stop;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,9 +41,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void initListener() {
-        this.btn_start.setOnClickListener(this);
-        this.btn_pause.setOnClickListener(this);
-        this.btn_resume.setOnClickListener(this);
+        btn_start.setOnClickListener(this);
+        btn_pause.setOnClickListener(this);
+        btn_resume.setOnClickListener(this);
+        btn_stop.setOnClickListener(this);
     }
 
     private void initView() {
@@ -72,6 +75,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             case R.id.btn_resume:
                 videoPlayer.resume();
+                break;
+            case R.id.btn_stop:
+                videoPlayer.stop();
                 break;
             default:
                 break;

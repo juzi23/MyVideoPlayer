@@ -9,6 +9,8 @@ VideoOutput::VideoOutput(VideoPlayerController & controller) {
 }
 
 VideoOutput::~VideoOutput() {
+    stop();
+
     if(playThread->joinable()){
         playThread->join();
     }
@@ -182,8 +184,8 @@ void VideoOutput::nativeSurfaceCreated() {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     }
 
-    // 4.设置清屏色
-    glClearColor(0,0,1,1);
+    // 4.设置清屏色--黑色
+    glClearColor(0,0,0,1);
 }
 
 void VideoOutput::nativeSurfaceChanged(int width, int height) {
@@ -198,22 +200,32 @@ void VideoOutput::play() {
 
     // TODO 加入播放控制逻辑
     while(true){
-        if (isPlaying) {
-            VideoFrame * frame = controller->synchronizer->getCurrentFrame();
-            renderFrame(frame);
-            // 这里解释下，我在这一步直接释放正在渲染帧时，会导致出现异常，
-            // 原因未知(我估计是内存被opengl占用着)，所以我改成释放上一帧
-            // 即已经确定渲染完成的帧，这就没问题了
-            if(lastFrame != nullptr){
-                delete(lastFrame);
-                lastFrame = nullptr;
+        if (!isExit) {
+            if (isPlaying) {
+                VideoFrame * frame = controller->synchronizer->getCurrentFrame();
+                renderFrame(frame);
+                // 这里解释下，我在这一步直接释放正在渲染帧时，会导致出现异常，
+                // 原因未知(我估计是内存被opengl占用着)，所以我改成释放上一帧
+                // 即已经确定渲染完成的帧，这就没问题了
+                if(lastFrame != nullptr){
+                    delete(lastFrame);
+                    lastFrame = nullptr;
+                }
+                lastFrame = frame;
+            }else{
+                std::this_thread::sleep_for(std::chrono::milliseconds(100));
+                std::this_thread::yield();
             }
-            lastFrame = frame;
-        }else{
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
-            std::this_thread::yield();
-        }
+        } else{
+            // 清屏
+            glClear(GL_COLOR_BUFFER_BIT);
+            eglSwapBuffers(mDisplay, mSurface);
 
+            // 销毁egl环境
+            eglDestroySurface(mDisplay,mSurface);
+            eglDestroyContext(mDisplay,mContext);
+            break;
+        }
     }
 }
 
@@ -223,4 +235,13 @@ void VideoOutput::pause() {
 
 void VideoOutput::resume() {
     isPlaying = true;
+}
+
+void VideoOutput::stop() {
+    isExit = true;
+    // 销毁播放线程
+    if(playThread != nullptr)
+        playThread->join();
+
+
 }

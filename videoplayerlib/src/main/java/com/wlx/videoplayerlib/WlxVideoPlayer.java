@@ -1,18 +1,26 @@
 package com.wlx.videoplayerlib;
 
+import android.os.AsyncTask;
 import android.view.Surface;
 
 import com.wlx.videoplayerlib.listener.OnFinishedListener;
 import com.wlx.videoplayerlib.listener.OnPreparedListener;
 
 import java.io.File;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 public class WlxVideoPlayer {
     static {
         System.loadLibrary("wlxvideoplayer");
     }
 
-
+    private ThreadPoolExecutor threadPool;
+    public WlxVideoPlayer(){
+        threadPool = new ThreadPoolExecutor(3,3,60,TimeUnit.SECONDS,new LinkedBlockingQueue());
+    }
 
     //region 包装了一系列方法 供上层调用...............................................................
     /**
@@ -33,31 +41,24 @@ public class WlxVideoPlayer {
      * 初始化播放环境，当播放环境搭建完成，将回调onPreparedListener.OnPrepared()方法
      */
     public void prepare(){
-        new Thread(){
+        threadPool.execute(new Runnable() {
             @Override
             public void run() {
                 n_prepare();
             }
-        }.start();
+        });
     }
 
     /**
      * 停止播放
      */
     public void stop(){
-        n_stop();
-    }
-
-    /**
-     * 异步停止播放
-     */
-    public void asyncStop(){
-        new Thread(new Runnable() {
+        threadPool.execute(new Runnable() {
             @Override
             public void run() {
-                stop();
+                n_stop();
             }
-        }).start();
+        });
     }
 
     /**
@@ -73,12 +74,12 @@ public class WlxVideoPlayer {
      * @param surface
      */
     public void initVideoOutput(final Surface surface) {
-        new Thread(){
+        threadPool.execute(new Runnable() {
             @Override
             public void run() {
                 n_initVideoOutput(surface);
             }
-        }.start();
+        });
     }
 
     /**

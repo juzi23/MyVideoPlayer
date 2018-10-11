@@ -9,7 +9,8 @@ AudioOutput::AudioOutput(VideoPlayerController & controller) {
 }
 
 AudioOutput::~AudioOutput() {
-
+    stop();
+    this->controller = nullptr;
 }
 
 void AudioOutput::prepare() {
@@ -164,4 +165,32 @@ void AudioOutput::resume() {
     if(pcmPlayerPlay!= nullptr){
         (*pcmPlayerPlay)->SetPlayState(pcmPlayerPlay,SL_PLAYSTATE_PLAYING);
     }
+}
+
+void AudioOutput::stop() {
+    destoryOpenSLES();
+}
+
+void AudioOutput::destoryOpenSLES() {
+    (*pcmPlayerPlay)->SetPlayState(pcmPlayerPlay,SL_PLAYSTATE_STOPPED);
+
+    if(pcmPlayerObject != NULL){
+        (*pcmPlayerObject)->Destroy(pcmPlayerObject);
+        pcmPlayerPlay = NULL;
+        pcmPlayerObject = NULL;
+        pcmBufferQueue = NULL;
+    }
+
+    if(outputMixObject != NULL){
+        (*outputMixObject)->Destroy(outputMixObject);
+        outputMixObject = NULL;
+        outputMixEnvironmentalReverb = NULL;
+    }
+
+    if(engineObject != NULL){
+        (*engineObject)->Destroy(engineObject);
+        engineObject = NULL;
+        engineEngine = NULL;
+    }
+
 }

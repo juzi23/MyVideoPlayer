@@ -38,6 +38,8 @@ public:
 
     void resume();
 
+    void stop();
+
 private:
     // GLSL程序:顶点着色器
     const char * vertexShaderCode =
@@ -75,7 +77,10 @@ private:
     int mWidth;
     int mHeight;
 
+    // 程序是否播放中
     bool isPlaying = true;
+    // 程序是否退出
+    bool isExit = false;
 
     // 初始化EGL环境
     void initEGL();
@@ -101,6 +106,7 @@ private:
     void nativeSurfaceChanged(int width, int height);
 
     void play();
+
 
 
 };

@@ -29,6 +29,8 @@ public:
 
     void resume();
 
+    void stop();
+
 private:
     // 引擎接口
     SLObjectItf engineObject = NULL;
@@ -52,6 +54,7 @@ public:
 private:
     // 初始化OpenSLES环境
     void initOpenSLES();
+    void destoryOpenSLES();
 
     // 获取音频采样率（枚举 --> 真实的采样率）
     SLuint32 getCurrentSampleRateForOpensles(int sample_rate);
