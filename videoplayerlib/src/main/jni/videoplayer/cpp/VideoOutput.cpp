@@ -33,16 +33,12 @@ void VideoOutput::initEGL() {
     // 获取设备屏幕
     EGLDisplay display = eglGetDisplay(EGL_DEFAULT_DISPLAY);
     if(display == EGL_NO_DISPLAY){
-        if(ISDEBUG){
-            LOGE("display get error!");
-            return;
-        }
+        LOGE("display get error!");
+        return;
     }
     if(!eglInitialize(display,0,0)){
-        if(ISDEBUG){
-            LOGE("display init error!");
-            return;
-        }
+        LOGE("display init error!");
+        return;
     }
 
     // 配置display
@@ -59,10 +55,8 @@ void VideoOutput::initEGL() {
     EGLConfig config;
     EGLint configNum;
     if(!eglChooseConfig(display, attribs, &config,1,&configNum)){
-        if(ISDEBUG){
-            LOGE("eglChooseConfig error!");
-            return;
-        }
+        LOGE("eglChooseConfig error!");
+        return;
     }
 
     // 创建OpenGL上下文
@@ -182,9 +176,9 @@ void VideoOutput::nativeSurfaceCreated() {
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        // 最邻近采样
+        // 缩小模式下为最邻近采样
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        // 线性插值
+        // 放大模式下为线性插值
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     }
 
@@ -206,6 +200,9 @@ void VideoOutput::play() {
     while(1){
         VideoFrame * frame = controller->synchronizer->getCurrentFrame();
         renderFrame(frame);
+        // 这里解释下，我在这一步直接释放正在渲染帧时，会导致出现异常，
+        // 原因未知(我估计是内存被opengl占用着)，所以我改成释放上一帧
+        // 即已经确定渲染完成的帧，这就没问题了
         if(lastFrame != nullptr){
             delete(lastFrame);
             lastFrame = nullptr;

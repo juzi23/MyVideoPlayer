@@ -60,16 +60,15 @@ AudioFrame * AVSynchronizer::getAudioFrame() {
 
     // 记录下最后一次拿走的音频时间戳
     lastAudioFrameTimeStamp = frame->position;
-    // 记录下拿走时的时间
-    lastGetSystemTime = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-
+    // 记录下拿走时的时间(毫秒级)
+    lastGetSystemTime = getCurrentTimeMS();
 
     return frame;
 }
 
 VideoFrame *AVSynchronizer::getCurrentFrame() {
     // 获取到当前音频播放时间
-    long long tempDuration  =std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()) - lastGetSystemTime;
+    long long tempDuration  =getCurrentTimeMS() - lastGetSystemTime;
     long long currentAudioTime = lastAudioFrameTimeStamp + tempDuration;
 
     VideoFrame * outFrame = videoQueue->get();
@@ -83,14 +82,9 @@ VideoFrame *AVSynchronizer::getCurrentFrame() {
         return nullptr;
     }
 
-    if(outFrame->position < currentAudioTime-100){
-        delete(outFrame);
-        return nullptr;
-    }else if(outFrame->position < currentAudioTime + 100){
-
-    }else{
+    if(outFrame->position>currentAudioTime){
         long long minin = (outFrame->position - currentAudioTime);
-        std::this_thread::sleep_for(std::chrono::milliseconds(minin-50));
+        std::this_thread::sleep_for(std::chrono::milliseconds(minin/10*9));
         std::this_thread::yield();
     }
 

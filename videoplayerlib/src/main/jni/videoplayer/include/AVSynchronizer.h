@@ -30,6 +30,7 @@ class AudioFrame;
 class VideoFrame;
 
 #include "OnCallJava.h"
+#include "MyTime.h"
 
 // 承上
 class VideoPlayerController;
