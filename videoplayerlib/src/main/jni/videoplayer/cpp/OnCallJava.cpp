@@ -28,13 +28,12 @@ OnCallJava::~OnCallJava() {
 
 void OnCallJava::callPrepared() {
     JNIEnv * jniEnv = NULL;
+    // 把当前jvm中的jniEnv取出,并关联
     if(jvm->AttachCurrentThread(&jniEnv,NULL) != JNI_OK){
-        if(ISDEBUG)
-        {
-            LOGE("get child thread jnienv worng");
-        }
+        LOGE("get child thread jnienv worng");
         return;
     }
     jniEnv->CallVoidMethod(jobj,jmid_onCallPrepared);
+    // 解除关联
     jvm->DetachCurrentThread();
 }

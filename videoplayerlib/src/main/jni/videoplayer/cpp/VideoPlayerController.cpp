@@ -37,9 +37,6 @@ void VideoPlayerController::play() {
             synchronizer->run();
         }
         if(audioOutput!= nullptr){
-            if(audioOutput->isPrepared == false){
-                audioOutput->prepare();
-            }
             audioOutput->play();
         }
         currentPlayState.currentPlayState = EnumCurrentPlayState::PLAYING;

@@ -7,18 +7,12 @@ VideoDecoder::VideoDecoder(AVSynchronizer & sync, OnCallJava *& onCallJava) {
 
 VideoDecoder::~VideoDecoder() {
     isExit = true;
-    {
-        std::unique_lock<std::mutex> lckDecode(decodeMutex);
-        decodeCond.notify_all();
-    }
-
-    //TODO 修改控制子线程工作的标志位
+    // 让解码线程活动起来，（不活动就僵死了，无法进入下一个循环进行退出）
+    requestDecode();
 
     //等待子线程结束
     prepareThread->join();
-//    decodeThread->join();
     decodeThread->join();
-
     //回收内存
     delete(prepareThread);
     delete(decodeThread);
@@ -218,9 +212,13 @@ void VideoDecoder::prepare() {
     // 在同步模块中，设置音频帧缓冲队列
     if(synchronizer->audioQueue == nullptr)
         synchronizer->audioQueue = new AudioFrameQueue(synchronizer);
+    // 记录当前播放的音轨
     this->audioIndex = audioIndex;
+    // 获取音频解码器参数
     audioCodecpar = formatContext->streams[audioIndex]->codecpar;
+    // 获取播放时长
     audioDuration = formatContext->duration / AV_TIME_BASE;
+    // 获取音频时间基
     audioTimeBase = formatContext->streams[audioIndex]->time_base;
 
     // 获取音频流解码器

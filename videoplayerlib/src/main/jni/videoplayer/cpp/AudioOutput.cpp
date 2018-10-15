@@ -23,13 +23,13 @@ void AudioOutput::prepare() {
 // OpenSLES 播放 回调方法
 void pcmBufferCallBack(SLAndroidSimpleBufferQueueItf bf, void * context)
 {
+    // 传入this指针
     AudioOutput * audioOutput = (AudioOutput *) context;
     // 获取到一个音频帧
     AudioFrame * audioFrame = audioOutput->controller->synchronizer->getAudioFrame();
 
     if(audioFrame != NULL)
     {
-
         if(audioOutput->lastAudioFrame != nullptr){
             delete(audioOutput->lastAudioFrame);
             audioOutput->lastAudioFrame = nullptr;
@@ -152,6 +152,10 @@ SLuint32 AudioOutput::getCurrentSampleRateForOpensles(int sample_rate) {
 }
 
 void AudioOutput::play() {
+    if(isPrepared == false){
+        prepare();
+    }
+    // 手动调一把回调方法，这样相当于点了第一把火，以后，opensles会在自己的线程里循环执行这个回调
     pcmBufferCallBack(pcmBufferQueue,this);
 }
 

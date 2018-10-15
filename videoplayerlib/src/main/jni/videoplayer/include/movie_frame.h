@@ -4,6 +4,7 @@
 #include <jni.h>
 #include <string.h>
 #include <malloc.h>
+#include <SLES/OpenSLES.h>
 
 extern "C"{
 #include <libavcodec/avcodec.h>
@@ -34,7 +35,7 @@ public:
 	// 音频裸数据
 	unsigned char * samples;
 	// 字节大小
-	int size;
+	SLuint32 size;
 	AudioFrame();
 	~AudioFrame();
 	MovieFrameType getType(){
