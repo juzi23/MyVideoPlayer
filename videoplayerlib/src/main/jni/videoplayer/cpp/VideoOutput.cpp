@@ -16,6 +16,16 @@ VideoOutput::~VideoOutput() {
     }
     delete(playThread);
 
+    if(positionArr!= nullptr){
+        delete[] positionArr;
+        positionArr= nullptr;
+    }
+    if(textureCoorArr != nullptr){
+        delete[] textureCoorArr;
+        textureCoorArr = nullptr;
+    }
+
+
     this->controller = nullptr;
 }
 
@@ -114,30 +124,30 @@ void VideoOutput::renderFrame(VideoFrame * videoFrame) {
     if(videoFrame->width > 0 && videoFrame->height > 0 && videoFrame->luma != nullptr && videoFrame->chromaB != nullptr && videoFrame->chromaR != nullptr)
     {
         glUseProgram(glslProgram);
-
+        // 批量赋值顶点位置坐标
         glEnableVertexAttribArray(avPositionHandle);
         glVertexAttribPointer(avPositionHandle, 2, GL_FLOAT, false, 8, positionArr);
-
+        // 批量赋值顶点纹理坐标
         glEnableVertexAttribArray(afPositionHandle);
         glVertexAttribPointer(afPositionHandle, 2, GL_FLOAT, false, 8, textureCoorArr);
-
+        // 传入y纹理
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, textureId_yuv[0]);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, videoFrame->width, videoFrame->height, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, videoFrame->luma);
-
+        // 传入u纹理
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, textureId_yuv[1]);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, videoFrame->width / 2, videoFrame->height / 2, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, videoFrame->chromaB);
-
+        // 传入v纹理
         glActiveTexture(GL_TEXTURE2);
         glBindTexture(GL_TEXTURE_2D, textureId_yuv[2]);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, videoFrame->width / 2, videoFrame->height / 2, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, videoFrame->chromaR);
-
+        // 用程序中的变量句柄与纹理位置，将纹理与纹理变量真正关联起来
         glUniform1i(samplerYHandle, 0);
         glUniform1i(samplerUHandle, 1);
         glUniform1i(samplerVHandle, 2);
 
-        // 3. 进行渲染
+        // 3. 进行渲染,以三角形带的方式画3个点
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
     }
 
@@ -198,7 +208,7 @@ void VideoOutput::play() {
         prepare();
     }
 
-    // TODO 加入播放控制逻辑
+    // 加入播放控制逻辑,如果没有退出或stop，进行暂停与否判断，没暂停，就从同步模块获取一帧进行渲染
     while(true){
         if (!isExit) {
             if (isPlaying) {

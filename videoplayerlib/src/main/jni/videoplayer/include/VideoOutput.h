@@ -96,8 +96,8 @@ private:
     // GPU中生成的纹理ID数组
     GLuint textureId_yuv[3];
 
-    float * positionArr;
-    float * textureCoorArr;
+    float * positionArr = nullptr;
+    float * textureCoorArr = nullptr;
 
     VideoFrame * lastFrame = nullptr;
 
